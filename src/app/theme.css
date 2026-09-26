@@ -1,0 +1,196 @@
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 11px;
+  color: var(--ink);
+}
+.theme-toggle:hover {
+  background: var(--border);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #151517;
+  --ink: #e9e9ec;
+  --muted: #aaaab2;
+  --green: #b0bfb5;
+  --border: #39393f;
+  --orange: #e7a481;
+  --button-ink: #1c201e;
+  --surface: #202023;
+  --surface-raised: #29292e;
+}
+[data-theme="dark"]
+  :is(
+    .workspace,
+    .modal,
+    .mini-sheet,
+    .secondary-button,
+    .versus,
+    .algorithm-field select
+  ) {
+  background: var(--surface);
+  border-color: var(--border);
+}
+[data-theme="dark"]
+  :is(.steps, .workspace-footer, .icon-tile, .dropzone, .mini-sheet th) {
+  background: #1b1b1e;
+  border-color: var(--border);
+}
+[data-theme="dark"]
+  :is(
+    .csv-guide,
+    .preview-title,
+    .step-number,
+    .upload-illustration,
+    .how-icon,
+    .result-icon,
+    .sheet-tag
+  ) {
+  background: var(--surface-raised);
+  border-color: var(--border);
+  color: #c0c0c8;
+}
+[data-theme="dark"] .dropzone:hover,
+[data-theme="dark"] .dropzone.dragging {
+  background: #303035;
+  border-color: var(--green);
+}
+[data-theme="dark"]
+  :is(
+    .brand-mark,
+    .primary-button,
+    .step.active .step-number,
+    .upload-illustration > span
+  ) {
+  background: var(--green);
+  color: var(--button-ink);
+  border-color: var(--green);
+}
+[data-theme="dark"] .primary-button:hover {
+  background: #c3cdc7;
+}
+[data-theme="dark"] .step.complete .step-number {
+  background: #353a37;
+  color: #c9d1cc;
+}
+[data-theme="dark"] .choice-card {
+  background: #28282d;
+  border-color: #44444b;
+}
+[data-theme="dark"] .choice-1 {
+  background: #2c2928;
+  border-color: #49433f;
+}
+[data-theme="dark"] .how-icon.peach {
+  background: #3b2e25;
+  color: #e3b08a;
+}
+[data-theme="dark"] .how-icon.yellow {
+  background: #373420;
+  color: #d3c682;
+}
+[data-theme="dark"] .favorite-badge {
+  background: #38331e;
+  color: #e2cb89;
+}
+[data-theme="dark"] .rank-number.podium {
+  color: #e2cb89;
+}
+[data-theme="dark"] .error {
+  background: #42271e;
+  color: #ffb998;
+}
+[data-theme="dark"] .progress-track {
+  background: #35353b;
+}
+[data-theme="dark"] .progress-track > span {
+  background: #aabcb0;
+}
+[data-theme="dark"]
+  :is(
+    .preview li,
+    .results-list li,
+    .mini-sheet td,
+    .mini-sheet th,
+    .sheet-top
+  ) {
+  border-color: var(--border);
+}
+[data-theme="dark"]
+  :is(
+    .header-note,
+    .eyebrow,
+    .step,
+    .step-chevron,
+    .dropzone small,
+    .checkbox-label,
+    .sample-row,
+    .csv-guide > .small-label,
+    .csv-guide > p,
+    .sheet-filename,
+    .mini-sheet table,
+    .mini-sheet td:first-child,
+    .guide-tips,
+    .workspace-footer,
+    .how-title .small-label,
+    .how-grid p,
+    .page-footer,
+    .footer-brand,
+    .page-footer svg,
+    .compare-heading .small-label,
+    .results-section > .small-label,
+    .choice-label,
+    .choice-details,
+    .choice-details small,
+    .compare-footer > span,
+    .saved-note,
+    .rank-number,
+    .versus
+  ) {
+  color: var(--muted);
+}
+[data-theme="dark"]
+  :is(.step.active, .guide-tips svg, .template-link, .success-icon) {
+  color: var(--green);
+}
+[data-theme="dark"] .film-poster {
+  background: #29292e;
+}
+[data-theme="dark"] .poster-placeholder {
+  background: linear-gradient(135deg, #303036, #212125);
+  color: #b8b8c1;
+}
+[data-theme="dark"] dialog.modal::backdrop {
+  background: #050507b3;
+}
+[data-theme="dark"] .film-poster img {
+  background: #19191c;
+}
+[data-theme="dark"] .poster-source {
+  background: #17171cde;
+}
+[data-theme="dark"] .workspace {
+  box-shadow: 0 7px 28px #0002;
+}
+@media (max-width: 700px) {
+  .header-actions {
+    gap: 13px;
+  }
+  .theme-toggle {
+    padding: 8px;
+  }
+  .theme-toggle > span {
+    display: none;
+  }
+}
