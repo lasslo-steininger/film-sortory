@@ -14,6 +14,13 @@ export function upload(file: File, hasHeader: boolean) {
   form.set("hasHeader", String(hasHeader));
   return response(fetch("/api/sessions", { method: "POST", body: form }));
 }
+export function importImdbList(url: string) {
+  return response(fetch("/api/imdb-lists", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
+  }));
+}
 export function restore(id: string) {
   return response(
     fetch(`/api/sessions/${encodeURIComponent(id)}`, { cache: "no-store" }),

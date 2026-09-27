@@ -1,6 +1,12 @@
 # Sortory
 
-A Next.js application that turns a CSV of film names into a personal ranking through pairwise choices, illustrated with covers found via IMDb.
+A Next.js application that turns a public IMDb list or CSV of film names into a personal ranking through pairwise choices.
+
+## Import an IMDb list
+
+Paste a public IMDb list link, such as `https://www.imdb.com/list/ls…/` or a localized link like `https://www.imdb.com/de/list/ls…/`, on the import screen. The server requests the list from IMDb, follows its pages, and imports film titles and release years. IMDb lists can include other kinds of entries; these are skipped. A list needs at least two films and may contain at most 1,000 entries. Private or unavailable lists cannot be imported by link.
+
+The importer uses IMDb's public website GraphQL endpoint, verified with live requests. It needs no API key, but it is an undocumented interface that may change or reject requests. IMDb's [data-use guidance](https://help.imdb.com/article/imdb/general-information/can-i-use-imdb-data-in-my-software/G5JTRESSHJBBHTGX) limits online extraction and use; review its terms before deploying this integration beyond personal use. The CSV option remains available, including for lists exported from IMDb.
 
 ## Film covers
 
@@ -27,7 +33,7 @@ Open http://localhost:3000. For production, run `npm run build` and `npm start`.
 
 ## Use
 
-Upload a `.csv` with one item per row. The first column is the item name; other columns supply comparison context. Leave “My first row contains column names” checked for a header row, or uncheck it for a plain list. Quoted commas, multiline fields, UTF-8 BOMs, and common delimiters are supported. Limits: 1 MB, 1000 items, 2,000 characters per cell. At least two named items are required. Duplicate names remain distinct items.
+IMDb list links are the default import option. To use your own file, choose the **CSV file** tab and upload a `.csv` with one item per row. The first column is the item name; other columns supply comparison context. Leave “My first row contains column names” checked for a header row, or uncheck it for a plain list. Quoted commas, multiline fields, UTF-8 BOMs, and common delimiters are supported. Limits: 1 MB, 1000 items, 2,000 characters per cell. At least two named items are required. Duplicate names remain distinct items.
 
 Review the import, start ranking, and select the film you prefer. The app uses merge sort to build the ranking. Left/right arrow keys also work. Undo reopens the preceding comparison, including after completion. Results are ordered favorite first and can be exported as CSV with original metadata. Export escapes spreadsheet formula prefixes.
 
@@ -40,6 +46,7 @@ Every newly uploaded ranking and explicit ranking restart shuffles all films on 
 - `src/shared/types.ts`: shared transport types.
 - `src/app/api/sessions/`: thin HTTP route handlers and input validation.
 - `src/server/csv.ts`: parsing and validation.
+- `src/server/imdb-lists.ts`: validates IMDb list links, requests paginated list data, and imports film titles and years.
 - `src/server/sort.ts`: pure resumable merge sort, independent of React and HTTP.
 - `src/server/sessions.ts`: server-only orchestration, revision checks, atomic file persistence, and serialized session writes.
 
@@ -58,6 +65,7 @@ This storage adapter targets a **single Node.js server with persistent writable 
 ## API
 
 - `POST /api/sessions`: multipart `file` and `hasHeader`; creates a session and returns its view.
+- `POST /api/imdb-lists`: JSON `{ "url": "https://www.imdb.com/list/ls…/" }`; imports a public IMDb list and creates a session.
 - `GET /api/sessions/:id`: returns a saved session.
 - `POST /api/sessions/:id`: JSON `{ "revision": 0, "action": "choose", "winner": "0" }`, `{ "revision": 1, "action": "undo" }`, or `{ "revision": 1, "action": "restart" }`.
 

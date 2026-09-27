@@ -365,6 +365,12 @@
 [data-theme="dark"] .choice-1 { background: transparent; border-color: var(--border); }
 [data-theme="dark"] .how-icon { color: var(--ink) !important; }
 [data-theme="dark"] .poster-placeholder { background: #30332d; }
+[data-theme="dark"] .imdb-import input,
+[data-theme="dark"] .imdb-link-example {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--ink);
+}
 @media (max-width: 700px) {
   .header { height: 72px; }
   .intro { padding: 42px 20px 34px; }

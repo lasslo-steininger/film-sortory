@@ -4,7 +4,7 @@ import "./theme.css";
 export const metadata: Metadata = {
   title: "filmSortory",
   description:
-    "Upload a list of films, choose between pairs, and download your ranking.",
+    "Import an IMDb list or upload a CSV, compare films in pairs, and download your ranking.",
 };
 export default function RootLayout({
   children,

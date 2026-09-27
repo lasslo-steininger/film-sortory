@@ -129,7 +129,7 @@ async function main() {
   );
   const page = await fetch(base);
   assert.equal(page.status, 200);
-  assert.match(await page.text(), /Put your films/);
+  assert.match(await page.text(), /Paste an IMDb list link/);
   console.log(
     "API integration passed: upload, validation, concurrent choices, undo, full ranking, restart, restoration, and page rendering.",
   );

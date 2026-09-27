@@ -63,6 +63,8 @@ export function RankingApp() {
   const [restoring, setRestoring] = useState(true);
   const [error, setError] = useState("");
   const [hasHeader, setHasHeader] = useState(true);
+  const [importMode, setImportMode] = useState<"imdb" | "csv">("imdb");
+  const [imdbUrl, setImdbUrl] = useState("");
   const [dragging, setDragging] = useState(false);
   const [showReset, setShowReset] = useState<"restart" | "replace" | null>(
     null,
@@ -134,6 +136,24 @@ export function RankingApp() {
       if (input.current) input.current.value = "";
     }
   }
+  async function importList() {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      const value = await api.importImdbList(imdbUrl.trim());
+      setSession(value);
+      setStarted(false);
+      setRankingPaused(false);
+      remember(value.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not import the IMDb list.");
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }
   const choose = useCallback(
     async (action: "choose" | "undo", winner?: string) => {
       if (!session || inFlight.current) return;
@@ -182,6 +202,7 @@ export function RankingApp() {
   function reset() {
     setSession(null);
     setStarted(false);
+    setImportMode("imdb");
     setRankingPaused(false);
     setShowReset(null);
     setError("");
@@ -250,8 +271,8 @@ export function RankingApp() {
             Rank any film list
           </h1>
           <p>
-            Upload a list, choose between two films at a time, and see where
-            everything lands.
+            Paste an IMDb list link or upload a CSV. Then choose between two
+            films at a time to build your ranking.
           </p>
         </div>
         <div className="workspace">
@@ -290,12 +311,68 @@ export function RankingApp() {
               <section className="import-main">
                 <div className="section-heading">
                   <div>
-                    <h2>Start with a CSV</h2>
-                    <p>Film titles go in the first column. We’ll look up the covers.</p>
+                    <h2>
+                      {session
+                        ? "Review your films"
+                        : importMode === "imdb"
+                          ? "Import an IMDb list"
+                          : "Upload a CSV"}
+                    </h2>
+                    <p>
+                      {session
+                        ? "Check the films before you start comparing."
+                        : importMode === "imdb"
+                          ? "Paste a link to a public IMDb list."
+                          : "Film titles go in the first column. We’ll look up the covers."}
+                    </p>
                   </div>
                 </div>
                 {!session ? (
                   <>
+                    <div className="import-tabs" role="group" aria-label="Import source">
+                      <button
+                        type="button"
+                        className={importMode === "imdb" ? "selected" : ""}
+                        aria-pressed={importMode === "imdb"}
+                        disabled={busy}
+                        onClick={() => { setImportMode("imdb"); setError(""); }}
+                      >
+                        IMDb list
+                      </button>
+                      <button
+                        type="button"
+                        className={importMode === "csv" ? "selected" : ""}
+                        aria-pressed={importMode === "csv"}
+                        disabled={busy}
+                        onClick={() => { setImportMode("csv"); setError(""); }}
+                      >
+                        CSV file
+                      </button>
+                    </div>
+                    {importMode === "imdb" ? (
+                      <form
+                        className="imdb-import"
+                        onSubmit={(event) => { event.preventDefault(); void importList(); }}
+                      >
+                        <label htmlFor="imdb-list-url">IMDb list link</label>
+                        <input
+                          id="imdb-list-url"
+                          type="url"
+                          placeholder="https://www.imdb.com/list/ls123456789/"
+                          value={imdbUrl}
+                          onChange={(event) => setImdbUrl(event.target.value)}
+                          autoComplete="url"
+                          required
+                          disabled={busy}
+                        />
+                        <button className="primary-button full" type="submit" disabled={busy}>
+                          {busy ? "Importing from IMDb…" : "Import list"}
+                          <ArrowRight size={17} />
+                        </button>
+                        <p>Public lists only · Up to 1,000 entries · Films and short films</p>
+                      </form>
+                    ) : (
+                    <>
                     <input
                       ref={input}
                       type="file"
@@ -363,6 +440,8 @@ export function RankingApp() {
                         Try the sample list <ArrowRight size={15} />
                       </button>
                     </div>
+                    </>
+                    )}
                   </>
                 ) : (
                   <div className="preview">
@@ -379,7 +458,7 @@ export function RankingApp() {
                       <button
                         className="text-button"
                         onClick={reset}
-                        aria-label="Remove uploaded list"
+                        aria-label="Remove imported list"
                         disabled={busy}
                       >
                         <X size={18} />
@@ -419,6 +498,16 @@ export function RankingApp() {
                 )}
               </section>
               <aside className="csv-guide">
+                {importMode === "imdb" ? (
+                  <div className="imdb-guide">
+                    <span className="small-label">FROM IMDB</span>
+                    <h3>Bring your list over</h3>
+                    <p>Open a public list on IMDb, copy its link, and paste it here. We’ll import the films and their release years.</p>
+                    <div className="imdb-link-example">imdb.com/list/ls…</div>
+                    <p>Private lists and watchlists can’t be imported from a list link. Export one as a CSV on IMDb, then use the CSV file tab.</p>
+                  </div>
+                ) : (
+                <>
                 <h3>What goes in the CSV?</h3>
                 <p>
                   One film per row. Add a year if you need to distinguish a remake.
@@ -478,12 +567,13 @@ export function RankingApp() {
                 >
                   <Download size={14} /> Download example CSV
                 </button>
+                </>
+                )}
               </aside>
             </div>
           ) : stage === 2 && session ? (
             <section className="compare-section">
               <div className="compare-heading">
-                <span className="small-label">FILM BY FILM</span>
                 <h2>Which film do you prefer?</h2>
                 <p>Choose the one you’d put higher on your list.</p>
               </div>
@@ -545,10 +635,6 @@ export function RankingApp() {
                     : "Tip: use the ← and → arrow keys"}
                 </span>
               </div>
-              <p className="saved-note">
-                <Check size={13} /> Progress is saved automatically. You can
-                come back anytime.
-              </p>
               <button
                 className="secondary-button"
                 disabled={busy}
@@ -666,10 +752,9 @@ export function RankingApp() {
                 <Upload size={20} />
               </span>
               <div>
-                <h3>Upload a list</h3>
+                <h3>Import your films</h3>
                 <p>
-                  Upload a CSV of film names.
-                  <br className="desktop-break" /> We find their covers on IMDb.
+                  Paste a public IMDb list link or upload a CSV of film names.
                 </p>
               </div>
             </article>
