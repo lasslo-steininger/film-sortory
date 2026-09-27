@@ -14,7 +14,7 @@ type Session = {
   revision: number;
 };
 const directory = path.resolve(
-  process.env.SESSION_DATA_DIR || ".data/sessions",
+  /*turbopackIgnore: true*/ process.env.SESSION_DATA_DIR || ".data/sessions",
 );
 const globalStore = globalThis as unknown as {
   sessionLocks?: Map<string, Promise<unknown>>;

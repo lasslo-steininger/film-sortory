@@ -31,6 +31,19 @@ npm run dev
 
 Open http://localhost:3000. For production, run `npm run build` and `npm start`.
 
+## Windows desktop app
+
+The Electron edition bundles the production Next.js server and its assets, so users do not need Node.js. Build it on Windows with Node.js 20.9 or later:
+
+```sh
+npm install
+npm run desktop:make
+```
+
+Electron Forge writes a Windows installer to `out/make/squirrel.windows/x64/` and a portable ZIP to `out/make/zip/win32/x64/`. `npm run desktop:package` creates only the unpacked application; `npm run desktop:run` builds and opens a local Electron copy of the app. The build copies `.next/static` into Next.js's standalone output before packaging.
+
+Desktop sessions are saved under the app's per-user data directory (`%APPDATA%/filmSortory/sessions` on Windows). The app serves only on a random loopback port; the server stops when the window closes. CSV ranking works offline. IMDb imports, covers, and the optional Google Fonts require internet access. The installer is unsigned unless a Windows code-signing certificate is configured in `forge.config.cjs`; Windows may warn when opening an unsigned download.
+
 ## Use
 
 IMDb list links are the default import option. To use your own file, choose the **CSV file** tab and upload a `.csv` with one item per row. The first column is the item name; other columns supply comparison context. Leave “My first row contains column names” checked for a header row, or uncheck it for a plain list. Quoted commas, multiline fields, UTF-8 BOMs, and common delimiters are supported. Limits: 1 MB, 1000 items, 2,000 characters per cell. At least two named items are required. Duplicate names remain distinct items.

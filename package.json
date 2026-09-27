@@ -1,7 +1,11 @@
 {
   "name": "film-sortory",
+  "productName": "filmSortory",
   "version": "1.0.0",
   "private": true,
+  "description": "Rank films from IMDb lists or CSV files",
+  "author": "filmSortory",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,22 +13,30 @@
     "test": "tsx --test tests/*.test.ts",
     "test:integration": "tsx tests/api.integration.ts",
     "test:imdb": "tsx tests/imdb.integration.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "desktop:prepare": "npm run build && node scripts/prepare-electron.mjs",
+    "desktop:run": "npm run desktop:prepare && electron .",
+    "desktop:package": "npm run desktop:prepare && electron-forge package",
+    "desktop:make": "npm run desktop:prepare && electron-forge make"
   },
   "dependencies": {
+    "lucide-react": "^0.468.0",
     "next": "^16.3.6",
+    "papaparse": "^5.5.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "papaparse": "^5.5.3",
-    "lucide-react": "^0.468.0",
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^7.11.2",
+    "@electron-forge/maker-squirrel": "^7.11.2",
+    "@electron-forge/maker-zip": "^7.11.2",
     "@types/node": "^22.0.0",
+    "@types/papaparse": "^5.3.16",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@types/papaparse": "^5.3.16",
-    "typescript": "^5.9.0",
-    "tsx": "^4.20.0"
+    "electron": "^44.4.5",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
   }
 }
