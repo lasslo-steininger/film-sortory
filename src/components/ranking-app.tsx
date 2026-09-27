@@ -622,9 +622,6 @@ export function RankingApp() {
                     disabled={busy}
                     onClick={() => void choose("choose", item.id)}
                   >
-                    <span className="choice-label">
-                      OPTION {index === 0 ? "A" : "B"}
-                    </span>
                     <FilmPoster film={item} />
                     <span className="choice-name">{item.name}</span>
                     <span className="choice-details">
