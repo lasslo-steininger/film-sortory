@@ -259,16 +259,6 @@ export function RankingApp() {
         </a>
         <div className="header-actions">
           <ThemeToggle />
-          <button
-            className="text-button"
-            onClick={() =>
-              document
-                .getElementById("how-it-works")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
-          >
-            How it works
-          </button>
         </div>
       </header>
       <main>
@@ -814,11 +804,6 @@ export function RankingApp() {
           </button>
         )}
       </main>
-      <footer className="page-footer">
-        <span className="footer-brand">
-          <span className="brand-film">film</span>Sortory
-        </span>
-      </footer>
       <dialog
         ref={resetDialog}
         className="modal"
