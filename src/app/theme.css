@@ -371,6 +371,15 @@
   border-color: var(--border);
   color: var(--ink);
 }
+[data-theme="dark"] .imdb-suggestion-list button {
+  background: var(--surface-raised);
+  border-color: var(--border);
+  color: var(--ink);
+}
+[data-theme="dark"] .imdb-suggestion-list button:hover {
+  background: #34372f;
+  border-color: var(--green);
+}
 @media (max-width: 700px) {
   .header { height: 72px; }
   .intro { padding: 42px 20px 34px; }
