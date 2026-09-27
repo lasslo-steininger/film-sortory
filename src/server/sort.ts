@@ -1,4 +1,4 @@
-import type { Item, SortingAlgorithm } from "../shared/types";
+import type { Item } from "../shared/types";
 
 type Sort = Generator<[Item, Item], Item[], string>;
 
@@ -17,57 +17,12 @@ function* mergeSort(list: Item[]): Sort {
   return output.concat(left.slice(a), right.slice(b));
 }
 
-function* quickSort(list: Item[]): Sort {
-  if (list.length < 2) return list;
-  // A fixed pivot keeps replay and undo deterministic.
-  const middle = Math.floor(list.length / 2);
-  const pivot = list[middle];
-  const before: Item[] = [];
-  const after: Item[] = [];
-  for (let i = 0; i < list.length; i++) {
-    if (i === middle) continue;
-    const item = list[i];
-    const winner = yield [item, pivot];
-    (winner === item.id ? before : after).push(item);
-  }
-  const left = yield* quickSort(before);
-  const right = yield* quickSort(after);
-  return [...left, pivot, ...right];
-}
-
-function* heapSort(items: Item[]): Sort {
-  const heap = [...items];
-  function* siftDown(root: number, size: number): Generator<[Item, Item], void, string> {
-    while (2 * root + 1 < size) {
-      let child = 2 * root + 1;
-      if (child + 1 < size) {
-        const winner = yield [heap[child], heap[child + 1]];
-        if (winner === heap[child + 1].id) child++;
-      }
-      const winner = yield [heap[root], heap[child]];
-      if (winner === heap[root].id) return;
-      [heap[root], heap[child]] = [heap[child], heap[root]];
-      root = child;
-    }
-  }
-  for (let root = Math.floor(heap.length / 2) - 1; root >= 0; root--) {
-    yield* siftDown(root, heap.length);
-  }
-  // Move each preferred root to the end, then reverse to best-first order.
-  for (let end = heap.length - 1; end > 0; end--) {
-    [heap[0], heap[end]] = [heap[end], heap[0]];
-    yield* siftDown(0, end);
-  }
-  return heap.reverse();
-}
-
 /** Replay saved choices, stopping at the next unanswered comparison. */
 export function rank(
   items: Item[],
   decisions: string[],
-  algorithm: SortingAlgorithm = "merge",
 ): { pair: [Item, Item] | null; results: Item[] | null } {
-  const sorter = { merge: mergeSort, quick: quickSort, heap: heapSort }[algorithm](items);
+  const sorter = mergeSort(items);
   let state = sorter.next();
   for (const winner of decisions) {
     if (state.done) throw new Error("Unexpected extra choices.");
@@ -84,9 +39,8 @@ export function rank(
 export function provisionalRanking(
   items: Item[],
   decisions: string[],
-  algorithm: SortingAlgorithm = "merge",
 ): Item[] {
-  const sorter = { merge: mergeSort, quick: quickSort, heap: heapSort }[algorithm](items);
+  const sorter = mergeSort(items);
   const edges = new Map(items.map((item) => [item.id, new Set<string>()]));
   const incoming = new Map(items.map((item) => [item.id, 0]));
   let state = sorter.next();
@@ -121,17 +75,7 @@ export function provisionalRanking(
   return ordered;
 }
 
-export function maxComparisons(count: number, algorithm: SortingAlgorithm = "merge"): number {
+export function maxComparisons(count: number): number {
   if (count < 2) return 0;
-  if (algorithm === "quick") return (count * (count - 1)) / 2;
-  if (algorithm === "heap") {
-    // Each sift compares at most twice per level, in construction and extraction.
-    let maximum = 0;
-    for (let root = 1; root <= Math.floor(count / 2); root++)
-      maximum += 2 * Math.floor(Math.log2(count / root));
-    for (let size = count - 1; size > 1; size--)
-      maximum += 2 * Math.floor(Math.log2(size));
-    return maximum;
-  }
   return maxComparisons(Math.floor(count / 2)) + maxComparisons(Math.ceil(count / 2)) + count - 1;
 }

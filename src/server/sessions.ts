@@ -2,12 +2,11 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { isSortingAlgorithm, type Item, type SessionView, type SortingAlgorithm } from "../shared/types";
+import { type Item, type SessionView } from "../shared/types";
 import { maxComparisons, provisionalRanking, rank } from "./sort";
 import { shuffle } from "./shuffle";
 
 type Session = {
-  algorithm?: SortingAlgorithm;
   id: string;
   name: string;
   items: Item[];
@@ -54,12 +53,10 @@ async function read(id: string): Promise<Session> {
   }
 }
 function view(session: Session): SessionView {
-  const algorithm = session.algorithm ?? "merge";
-  const state = rank(session.items, session.decisions, algorithm);
-  const maximum = maxComparisons(session.items.length, algorithm);
+  const state = rank(session.items, session.decisions);
+  const maximum = maxComparisons(session.items.length);
   return {
     id: session.id,
-    algorithm,
     name: session.name,
     items: session.items,
     revision: session.revision,
@@ -69,13 +66,12 @@ function view(session: Session): SessionView {
       ? 100
       : Math.min(99, Math.round((session.decisions.length / maximum) * 100)),
     ...state,
-    currentRanking: state.results ?? provisionalRanking(session.items, session.decisions, algorithm),
+    currentRanking: state.results ?? provisionalRanking(session.items, session.decisions),
   };
 }
-export async function createSession(name: string, items: Item[], algorithm: SortingAlgorithm = "merge") {
+export async function createSession(name: string, items: Item[]) {
   const session: Session = {
     id: randomUUID(),
-    algorithm,
     name: name.slice(0, 150),
     items: shuffle(items),
     decisions: [],
@@ -90,9 +86,8 @@ export async function getSession(id: string) {
 export async function updateSession(
   id: string,
   revision: number,
-  action: "choose" | "undo" | "algorithm" | "restart",
+  action: "choose" | "undo" | "restart",
   winner?: string,
-  algorithm?: SortingAlgorithm,
 ) {
   const previous = locks.get(id) ?? Promise.resolve();
   const task = previous
@@ -107,18 +102,12 @@ export async function updateSession(
       if (action === "restart") {
         session.decisions = [];
         session.items = shuffle(session.items);
-      } else if (action === "algorithm") {
-        if (!isSortingAlgorithm(algorithm))
-          throw new HttpError("Choose a valid sorting algorithm.");
-        if (session.decisions.length)
-          throw new HttpError("Start a new ranking to change the sorting algorithm.");
-        session.algorithm = algorithm;
       } else if (action === "undo") {
         if (!session.decisions.length)
           throw new HttpError("There are no choices to undo.");
         session.decisions.pop();
       } else {
-        const { pair } = rank(session.items, session.decisions, session.algorithm);
+        const { pair } = rank(session.items, session.decisions);
         if (!pair || !pair.some((item) => item.id === winner))
           throw new HttpError("Choose one of the two current films.");
         session.decisions.push(winner!);

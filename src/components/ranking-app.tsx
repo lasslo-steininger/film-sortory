@@ -2,25 +2,19 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowDownUp,
   ArrowRight,
   Check,
-  CheckCheck,
-  ChevronRight,
   Download,
   FileSpreadsheet,
   GitCompareArrows,
-  Heart,
-  Leaf,
   ListOrdered,
   LoaderCircle,
   Plus,
   RotateCcw,
-  Sparkles,
   Upload,
   X,
 } from "lucide-react";
-import type { SessionView, SortingAlgorithm } from "@/shared/types";
+import type { SessionView } from "@/shared/types";
 import * as api from "@/client/api";
 import { FilmPoster } from "./film-poster";
 import { ThemeToggle } from "./theme-toggle";
@@ -69,7 +63,6 @@ export function RankingApp() {
   const [restoring, setRestoring] = useState(true);
   const [error, setError] = useState("");
   const [hasHeader, setHasHeader] = useState(true);
-  const [algorithm, setAlgorithm] = useState<SortingAlgorithm>("merge");
   const [dragging, setDragging] = useState(false);
   const [showReset, setShowReset] = useState<"restart" | "replace" | null>(
     null,
@@ -96,7 +89,6 @@ export function RankingApp() {
       .then((value) => {
         if (active) {
           setSession(value);
-          setAlgorithm(value.algorithm);
           setStarted(value.comparisons > 0);
           try {
             setPaused(localStorage.getItem(pausedKey) === value.id && !value.results);
@@ -127,7 +119,7 @@ export function RankingApp() {
     setBusy(true);
     setError("");
     try {
-      const value = await api.upload(file, header, algorithm);
+      const value = await api.upload(file, header);
       setSession(value);
       setStarted(false);
       setRankingPaused(false);
@@ -140,30 +132,6 @@ export function RankingApp() {
       inFlight.current = false;
       setBusy(false);
       if (input.current) input.current.value = "";
-    }
-  }
-  async function changeAlgorithm(value: SortingAlgorithm) {
-    if (inFlight.current) return;
-    if (!session) {
-      setAlgorithm(value);
-      return;
-    }
-    inFlight.current = true;
-    setBusy(true);
-    setError("");
-    try {
-      const updated = await api.changeAlgorithm(session, value);
-      setSession(updated);
-      setAlgorithm(updated.algorithm);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Could not change the sorting algorithm.",
-      );
-    } finally {
-      inFlight.current = false;
-      setBusy(false);
     }
   }
   const choose = useCallback(
@@ -259,13 +227,9 @@ export function RankingApp() {
   return (
     <div className="app-shell">
       <header className="header">
-        <a className="brand" href="/" aria-label="Sortory home">
-          <span className="brand-mark">
-            <ArrowDownUp size={21} />
-          </span>
-          sortory<span className="brand-dot">.</span>
+        <a className="brand" href="/" aria-label="filmSortory home">
+          <span className="brand-film">film</span>Sortory
         </a>
-        <span className="header-note">Your taste. Your order.</span>
         <div className="header-actions">
           <ThemeToggle />
           <button
@@ -276,36 +240,27 @@ export function RankingApp() {
                 ?.scrollIntoView({ behavior: "smooth" })
             }
           >
-            How it works <span className="help-circle">?</span>
+            How it works
           </button>
         </div>
       </header>
       <main>
         <div className="intro">
-          <div className="eyebrow">
-            <span /> LESS OVERTHINKING. MORE YOU.
-          </div>
           <h1>
-            A little clarity for
-            <br />
-            your <span>favorite films.</span>
-            <svg className="flourish" viewBox="0 0 55 55" aria-hidden="true">
-              <path d="M8 43 21 26M30 35l17-4M25 16l2-13" />
-            </svg>
+            Rank any film list
           </h1>
           <p>
-            Big list? Strong opinions? Find your order, one choice at a time.
-            <br className="desktop-break" /> Bring your films. We’ll help you
-            discover what comes first.
+            Upload a list, choose between two films at a time, and see where
+            everything lands.
           </p>
         </div>
         <div className="workspace">
           <nav className="steps" aria-label="Ranking progress">
             {[
-              { label: "Add your films", icon: Upload },
-              { label: "Make your choices", icon: GitCompareArrows },
-              { label: "See your ranking", icon: ListOrdered },
-            ].map(({ label, icon: Icon }, index) => (
+              "Add films",
+              "Compare films",
+              "Your ranking",
+            ].map((label, index) => (
               <div
                 key={label}
                 className={`step ${stage === index + 1 ? "active" : ""} ${stage > index + 1 ? "complete" : ""}`}
@@ -314,11 +269,7 @@ export function RankingApp() {
                 <span className="step-number">
                   {stage > index + 1 ? <Check size={14} /> : index + 1}
                 </span>
-                <Icon size={16} />
                 <span>{label}</span>
-                {index < 2 && (
-                  <ChevronRight className="step-chevron" size={16} />
-                )}
               </div>
             ))}
           </nav>
@@ -332,37 +283,17 @@ export function RankingApp() {
           )}
           {restoring ? (
             <div className="loading">
-              <LoaderCircle className="spin" /> Opening your workspace…
+              <LoaderCircle className="spin" /> Opening your list…
             </div>
           ) : stage === 1 ? (
             <div className="import-layout">
               <section className="import-main">
                 <div className="section-heading">
-                  <span className="icon-tile">
-                    <FileSpreadsheet size={21} />
-                  </span>
                   <div>
-                    <h2>Your films. Your personal ranking.</h2>
-                    <p>Upload film names. We’ll find their covers on IMDb.</p>
+                    <h2>Start with a CSV</h2>
+                    <p>Film titles go in the first column. We’ll look up the covers.</p>
                   </div>
                 </div>
-                <label className="algorithm-field" htmlFor="sorting-algorithm">
-                  Sorting algorithm
-                  <select
-                    id="sorting-algorithm"
-                    value={session?.algorithm ?? algorithm}
-                    disabled={busy}
-                    onChange={(event) =>
-                      void changeAlgorithm(
-                        event.target.value as SortingAlgorithm,
-                      )
-                    }
-                  >
-                    <option value="merge">Merge sort</option>
-                    <option value="quick">Quick sort</option>
-                    <option value="heap">Heap sort</option>
-                  </select>
-                </label>
                 {!session ? (
                   <>
                     <input
@@ -400,13 +331,12 @@ export function RankingApp() {
                       <strong>
                         {busy
                           ? "Reading your list…"
-                          : "Drop your CSV right here"}
+                          : "Drop a CSV here"}
                       </strong>
                       <span>
-                        or <span className="browse">browse files</span> to get
-                        started
+                        or <span className="browse">choose a file</span>
                       </span>
-                      <small>CSV files · Up to 500 films · Max 1 MB</small>
+                      <small>CSV files · Up to 1,000 films · Max 1 MB</small>
                     </button>
                     <label className="checkbox-label">
                       <input
@@ -418,7 +348,7 @@ export function RankingApp() {
                       My first row contains column names
                     </label>
                     <div className="sample-row">
-                      <span>Just looking around?</span>
+                      <span>No list handy?</span>
                       <button
                         disabled={busy}
                         onClick={() =>
@@ -430,7 +360,7 @@ export function RankingApp() {
                           )
                         }
                       >
-                        Try a sample list <ArrowRight size={15} />
+                        Try the sample list <ArrowRight size={15} />
                       </button>
                     </div>
                   </>
@@ -438,7 +368,7 @@ export function RankingApp() {
                   <div className="preview">
                     <div className="preview-title">
                       <span className="success-icon">
-                        <CheckCheck size={20} />
+                        <Check size={20} />
                       </span>
                       <div>
                         <strong>{session.name}</strong>
@@ -480,26 +410,18 @@ export function RankingApp() {
                       disabled={busy}
                       onClick={() => setStarted(true)}
                     >
-                      Let’s find your favorites <ArrowRight size={17} />
+                      Start comparing <ArrowRight size={17} />
                     </button>
                     <p className="estimate">
-                      At most {session.maxComparisons} quick choices. Go at your
-                      own pace.
+                      Up to {session.maxComparisons} comparisons. Your progress is saved.
                     </p>
                   </div>
                 )}
               </section>
               <aside className="csv-guide">
-                <span className="small-label">A LITTLE CSV GUIDANCE</span>
-                <h3>
-                  Simple list.
-                  <br />
-                  Memorable films.
-                </h3>
+                <h3>What goes in the CSV?</h3>
                 <p>
-                  From cult classics to new favorites.
-                  <br />
-                  Bring your watchlist to life with IMDb covers.
+                  One film per row. Add a year if you need to distinguish a remake.
                 </p>
                 <div className="mini-sheet">
                   <div className="sheet-top">
@@ -535,7 +457,7 @@ export function RankingApp() {
                     </tbody>
                   </table>
                   <span className="sheet-tag">
-                    <Check size={12} /> Just like this
+                    <Check size={12} /> Example
                   </span>
                 </div>
                 <ul className="guide-tips">
@@ -561,7 +483,7 @@ export function RankingApp() {
           ) : stage === 2 && session ? (
             <section className="compare-section">
               <div className="compare-heading">
-                <span className="small-label">TRUST YOUR INSTINCTS</span>
+                <span className="small-label">FILM BY FILM</span>
                 <h2>Which film do you prefer?</h2>
                 <p>Choose the one you’d put higher on your list.</p>
               </div>
@@ -589,7 +511,6 @@ export function RankingApp() {
                   >
                     <span className="choice-label">
                       OPTION {index === 0 ? "A" : "B"}
-                      <Heart size={18} />
                     </span>
                     <FilmPoster film={item} />
                     <span className="choice-name">{item.name}</span>
@@ -604,7 +525,7 @@ export function RankingApp() {
                         ))}
                     </span>
                     <span className="choice-cta">
-                      I prefer this <ArrowRight size={17} />
+                      Choose this film <ArrowRight size={17} />
                     </span>
                   </button>
                 ))}
@@ -656,14 +577,11 @@ export function RankingApp() {
             </section>
           ) : session && displayedRanking ? (
             <section className="results-section">
-              <span className="result-icon">
-                <Sparkles size={25} />
-              </span>
-              <span className="small-label">{provisional ? "RANKING PAUSED" : "YOUR TASTE, IN ORDER"}</span>
-              <h2>{provisional ? "Your ranking so far" : "And the favorites are…"}</h2>
+              <span className="small-label">{provisional ? "RANKING PAUSED" : "RANKING COMPLETE"}</span>
+              <h2>{provisional ? "Your ranking so far" : "Your film ranking"}</h2>
               <p>
                 {session.items.length} films. {session.comparisons} choices.
-                {provisional ? " Your progress is saved. Resume anytime." : " One list that’s completely you."}
+                {provisional ? " Your progress is saved." : " Here’s the order you chose."}
               </p>
               {provisional && (
                 <>
@@ -699,7 +617,7 @@ export function RankingApp() {
                     </div>
                     {!provisional && index === 0 && (
                       <span className="favorite-badge">
-                        <Heart size={12} /> YOUR FAVORITE
+                        TOP PICK
                       </span>
                     )}
                   </li>
@@ -736,17 +654,11 @@ export function RankingApp() {
               </button>}
             </section>
           ) : null}
-          <div className="workspace-footer">
-            <span>
-              <Leaf size={14} /> A little less chaos. A little more clarity.
-            </span>
-            <span>Made for your kind of favorite.</span>
-          </div>
+          <div className="workspace-footer">Your progress is saved as you go.</div>
         </div>
         <section className="how-section" id="how-it-works">
           <div className="how-title">
-            <span className="small-label">FROM A LIST TO YOUR LIST</span>
-            <h2>No scores. No spreadsheets. Just choices.</h2>
+            <h2>How It Works</h2>
           </div>
           <div className="how-grid">
             <article>
@@ -754,7 +666,7 @@ export function RankingApp() {
                 <Upload size={20} />
               </span>
               <div>
-                <h3>Bring your film list</h3>
+                <h3>Upload a list</h3>
                 <p>
                   Upload a CSV of film names.
                   <br className="desktop-break" /> We find their covers on IMDb.
@@ -766,7 +678,7 @@ export function RankingApp() {
                 <GitCompareArrows size={21} />
               </span>
               <div>
-                <h3>Pick one. Then another.</h3>
+                <h3>Make the comparisons</h3>
                 <p>
                   We show you two films at a time.
                   <br className="desktop-break" /> You choose the one you
@@ -779,11 +691,9 @@ export function RankingApp() {
                 <ListOrdered size={21} />
               </span>
               <div>
-                <h3>Meet your personal ranking</h3>
+                <h3>Get your ranking</h3>
                 <p>
-                  A clever sorting algorithm connects
-                  <br className="desktop-break" /> your choices into one ordered
-                  list.
+                  Your choices build the order. Download the result as a CSV.
                 </p>
               </div>
             </article>
@@ -800,9 +710,9 @@ export function RankingApp() {
         )}
       </main>
       <footer className="page-footer">
-        <span className="footer-brand">sortory.</span>
-        <span>Because some things are a matter of taste.</span>
-        <Heart size={14} />
+        <span className="footer-brand">
+          <span className="brand-film">film</span>Sortory
+        </span>
       </footer>
       <dialog
         ref={resetDialog}
@@ -830,7 +740,7 @@ export function RankingApp() {
         </h2>
         <p id="reset-description">
           {showReset === "restart"
-            ? "This will erase all your choices and restart with the same films and sorting algorithm. This cannot be undone. Download your results first if you’d like to keep them."
+            ? "This will erase all your choices and restart with the same films. This cannot be undone. Download your results first if you’d like to keep them."
             : "This will clear this browser’s current ranking. Download your results first if you’d like to keep them."}
         </p>
         <div className="result-actions">

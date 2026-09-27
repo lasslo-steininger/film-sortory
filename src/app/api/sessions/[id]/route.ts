@@ -1,6 +1,5 @@
 import { getSession, updateSession, HttpError } from "@/server/sessions";
 import { errorResponse } from "@/server/http";
-import { isSortingAlgorithm } from "@/shared/types";
 export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
 export async function GET(_request: Request, context: Context) {
@@ -20,8 +19,7 @@ export async function POST(request: Request, context: Context) {
     if (
       !body ||
       !Number.isInteger(body.revision) ||
-      !["choose", "undo", "algorithm", "restart"].includes(body.action) ||
-      (body.action === "algorithm" && !isSortingAlgorithm(body.algorithm)) ||
+      !["choose", "undo", "restart"].includes(body.action) ||
       (body.action === "choose" && typeof body.winner !== "string")
     )
       throw new HttpError("Invalid choice.");
@@ -31,7 +29,6 @@ export async function POST(request: Request, context: Context) {
         body.revision,
         body.action,
         body.winner,
-        body.algorithm,
       ),
     );
   } catch (error) {

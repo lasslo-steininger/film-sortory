@@ -2,10 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { rank, maxComparisons } from "../src/server/sort";
 import { parseItems } from "../src/server/csv";
-import { sortingAlgorithms } from "../src/shared/types";
 
-for (const algorithm of sortingAlgorithms) {
-test(`${algorithm} sort produces the chosen preference order for different list sizes`, () => {
+test("merge sort produces the chosen preference order for different list sizes", () => {
   for (let size = 2; size <= 100; size++) {
     const items = Array.from({ length: size }, (_, i) => ({
       id: String(i),
@@ -19,38 +17,38 @@ test(`${algorithm} sort produces the chosen preference order for different list 
     const priority = new Map(preference.map((item, i) => [item.id, i]));
     const choices: string[] = [];
     const original = structuredClone(items);
-    let state = rank(items, choices, algorithm);
+    let state = rank(items, choices);
     while (state.pair) {
       const [a, b] = state.pair;
       choices.push(priority.get(a.id)! < priority.get(b.id)! ? a.id : b.id);
-      state = rank(items, choices, algorithm);
+      state = rank(items, choices);
     }
     assert.deepEqual(state.results, preference);
     assert.deepEqual(items, original, "Sorting does not mutate the input");
-    assert.ok(choices.length <= maxComparisons(size, algorithm));
+    assert.ok(choices.length <= maxComparisons(size));
     choices.pop();
-    assert.ok(rank(items, choices, algorithm).pair, "Undo reopens the last comparison");
+    assert.ok(rank(items, choices).pair, "Undo reopens the last comparison");
   }
 });
-test(`${algorithm}: invalid and extra decisions are rejected`, () => {
+test("invalid and extra decisions are rejected", () => {
   const items = parseItems("Name\nOne\nTwo", true);
-  assert.throws(() => rank(items, ["unknown"], algorithm));
-  assert.throws(() => rank(items, ["0", "1"], algorithm));
+  assert.throws(() => rank(items, ["unknown"]));
+  assert.throws(() => rank(items, ["0", "1"]));
 });
 
-test(`${algorithm}: empty and single-item lists need no choices`, () => {
+test("empty and single-item lists need no choices", () => {
   for (const items of [[], [{ id: "0", name: "One", details: {} }]]) {
-    assert.deepEqual(rank(items, [], algorithm), { pair: null, results: items });
-    assert.equal(maxComparisons(items.length, algorithm), 0);
+    assert.deepEqual(rank(items, []), { pair: null, results: items });
+    assert.equal(maxComparisons(items.length), 0);
   }
 });
 
-test(`${algorithm}: every comparison branch finishes within its bound`, () => {
+test("every comparison branch finishes within its bound", () => {
   for (let size = 2; size <= 6; size++) {
     const items = Array.from({ length: size }, (_, i) => ({ id: String(i), name: String(i), details: {} }));
     function visit(choices: string[]) {
-      const state = rank(items, choices, algorithm);
-      assert.ok(choices.length <= maxComparisons(size, algorithm));
+      const state = rank(items, choices);
+      assert.ok(choices.length <= maxComparisons(size));
       if (state.pair) {
         assert.notEqual(state.pair[0].id, state.pair[1].id);
         for (const item of state.pair) visit([...choices, item.id]);
@@ -61,7 +59,6 @@ test(`${algorithm}: every comparison branch finishes within its bound`, () => {
     visit([]);
   }
 });
-}
 test("CSV preserves quoted commas, multiline fields, BOM, and duplicate names", () => {
   const items = parseItems(
     '\uFEFFName,Notes\r\n"A, B","Line one\nLine two"\r\n"A, B","He said ""hello"""\r\n',
@@ -92,7 +89,7 @@ test("CSV rejects malformed, oversized, empty, or inconsistent data", () => {
     'Name\n"One\nTwo',
     "Name,Year\nOne,2001,extra\nTwo,2002",
     "Name\n" + "a".repeat(2001) + "\nTwo",
-    "Name\n" + Array(501).fill("Item").join("\n"),
+    "Name\n" + Array(1001).fill("Item").join("\n"),
     "a".repeat(1024 * 1024 + 1),
   ]) {
     assert.throws(() => parseItems(csv, true));

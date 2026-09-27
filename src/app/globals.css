@@ -89,7 +89,7 @@ button svg {
   margin-right: 10px;
   transform: rotate(-5deg);
 }
-.brand-dot {
+.brand-film {
   color: var(--orange);
 }
 .header-note {
@@ -337,26 +337,6 @@ h1 > span {
   color: #7f867a;
   font-size: 10px;
   margin-top: 13px;
-}
-.algorithm-field {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 20px;
-  color: var(--muted);
-  font-size: 12px;
-}
-.algorithm-field select {
-  width: 100%;
-  padding: 11px 12px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  background: white;
-  color: var(--ink);
-  font: inherit;
-}
-.algorithm-field select:focus-visible {
-  outline: 2px solid var(--green);
-  outline-offset: 2px;
 }
 .checkbox-label input {
   accent-color: var(--green);

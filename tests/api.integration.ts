@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
-import { sortingAlgorithms, type SortingAlgorithm } from "../src/shared/types";
 
-async function main(algorithm: SortingAlgorithm) {
+async function main() {
   const base = process.env.TEST_BASE_URL || "http://localhost:3000";
   const form = new FormData();
   form.set(
@@ -13,15 +12,13 @@ async function main(algorithm: SortingAlgorithm) {
     ),
   );
   form.set("hasHeader", "true");
-  // Omission remains compatible with clients that predate algorithm selection.
-  if (algorithm !== "merge") form.set("algorithm", algorithm);
   let response = await fetch(`${base}/api/sessions`, {
     method: "POST",
     body: form,
   });
   assert.equal(response.status, 201);
   let session = await response.json();
-  assert.equal(session.algorithm, algorithm);
+  assert.equal("algorithm" in session, false);
   const endpoint = `${base}/api/sessions/${session.id}`;
   const post = (body: unknown) =>
     fetch(endpoint, {
@@ -29,15 +26,6 @@ async function main(algorithm: SortingAlgorithm) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-  response = await post({ revision: session.revision, action: "algorithm", algorithm: "invalid" });
-  assert.equal(response.status, 400);
-  for (const selection of ["heap", "quick", algorithm]) {
-    response = await post({ revision: session.revision, action: "algorithm", algorithm: selection });
-    assert.equal(response.status, 200);
-    session = await response.json();
-    assert.equal(session.algorithm, selection);
-    assert.equal(session.comparisons, 0);
-  }
   assert.deepEqual(await (await fetch(endpoint)).json(), session);
   const originalPair = session.pair;
   const initial = session;
@@ -50,7 +38,7 @@ async function main(algorithm: SortingAlgorithm) {
     session = await restarted.json();
     assert.equal(session.id, initial.id);
     assert.equal(session.name, initial.name);
-    assert.equal(session.algorithm, initial.algorithm);
+    assert.equal("algorithm" in session, false);
     assert.equal(session.revision, oldRevision + 1);
     assert.equal(session.comparisons, 0);
     assert.equal(session.progress, 0);
@@ -89,8 +77,6 @@ async function main(algorithm: SortingAlgorithm) {
   assert.ok(chosenPosition < otherPosition);
   // Viewing/restoring the provisional order must leave the next comparison intact.
   assert.deepEqual(await (await fetch(endpoint)).json(), session);
-  response = await post({ revision: session.revision, action: "algorithm", algorithm: "merge" });
-  assert.equal(response.status, 400);
   response = await post({ revision: session.revision, action: "undo" });
   assert.equal(response.status, 200);
   session = await response.json();
@@ -118,7 +104,7 @@ async function main(algorithm: SortingAlgorithm) {
   );
   assert.equal(session.progress, 100);
   assert.deepEqual(session.currentRanking, session.results);
-  assert.equal(session.algorithm, algorithm);
+  assert.equal("algorithm" in session, false);
   assert.ok(session.comparisons <= session.maxComparisons);
   const restored = await (await fetch(endpoint)).json();
   assert.deepEqual(restored, session);
@@ -135,8 +121,6 @@ async function main(algorithm: SortingAlgorithm) {
   await restartRanking();
   assert.equal((await fetch(`${base}/api/sessions/not-a-session`)).status, 404);
   const invalid = new FormData();
-  form.set("algorithm", "invalid");
-  assert.equal((await fetch(`${base}/api/sessions`, { method: "POST", body: form })).status, 400);
   invalid.set("file", new File(["Name\nOnly one"], "invalid.csv"));
   assert.equal(
     (await fetch(`${base}/api/sessions`, { method: "POST", body: invalid }))
@@ -145,15 +129,12 @@ async function main(algorithm: SortingAlgorithm) {
   );
   const page = await fetch(base);
   assert.equal(page.status, 200);
-  assert.match(await page.text(), /A little clarity for/);
+  assert.match(await page.text(), /Put your films/);
   console.log(
-    `${algorithm}: API integration passed: algorithm selection, upload, validation, concurrent choices, undo, full ranking, restart, restoration, and page rendering.`,
+    "API integration passed: upload, validation, concurrent choices, undo, full ranking, restart, restoration, and page rendering.",
   );
 }
-async function run() {
-  for (const algorithm of sortingAlgorithms) await main(algorithm);
-}
-run().catch((error) => {
+main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });

@@ -29,27 +29,27 @@ Open http://localhost:3000. For production, run `npm run build` and `npm start`.
 
 Upload a `.csv` with one item per row. The first column is the item name; other columns supply comparison context. Leave “My first row contains column names” checked for a header row, or uncheck it for a plain list. Quoted commas, multiline fields, UTF-8 BOMs, and common delimiters are supported. Limits: 1 MB, 1000 items, 2,000 characters per cell. At least two named items are required. Duplicate names remain distinct items.
 
-Choose Merge sort (the default), Quick sort, or Heap sort from the sorting algorithm dropdown before uploading or in the import preview. The algorithm is saved with the ranking and cannot be changed after making choices. Review the import, start ranking, and select the item you prefer. Left/right arrow keys also work. Undo reopens the preceding comparison, including after completion. Results are ordered favorite first and can be exported as CSV with original metadata. Export escapes spreadsheet formula prefixes.
+Review the import, start ranking, and select the film you prefer. The app uses merge sort to build the ranking. Left/right arrow keys also work. Undo reopens the preceding comparison, including after completion. Results are ordered favorite first and can be exported as CSV with original metadata. Export escapes spreadsheet formula prefixes.
 
 ## Architecture
 
-Every newly uploaded ranking and explicit ranking restart shuffles all films on the server using Fisher–Yates. The shuffled order is saved with the session and remains stable when resuming, changing the algorithm before starting, or undoing choices. A shuffle can legitimately produce the same order by chance.
+Every newly uploaded ranking and explicit ranking restart shuffles all films on the server using Fisher–Yates. The shuffled order is saved with the session and remains stable when resuming or undoing choices. A shuffle can legitimately produce the same order by chance.
 
 - `src/components/`: client-side presentation and interaction state only.
 - `src/client/api.ts`: typed HTTP adapter; no ranking logic.
 - `src/shared/types.ts`: shared transport types.
 - `src/app/api/sessions/`: thin HTTP route handlers and input validation.
 - `src/server/csv.ts`: parsing and validation.
-- `src/server/sort.ts`: pure resumable merge sort, quick sort, and heap sort, independent of React and HTTP.
+- `src/server/sort.ts`: pure resumable merge sort, independent of React and HTTP.
 - `src/server/sessions.ts`: server-only orchestration, revision checks, atomic file persistence, and serialized session writes.
 
-The server replays the decision history through the selected algorithm, stopping at the first comparison that needs a human decision. Only the current pair is accepted. This makes undo deterministic and keeps sorting authoritative on the backend. Merge sort and heap sort take O(n log n) comparisons with a consistent preference relation. Quick sort uses a deterministic middle pivot and can take O(n²) comparisons in the worst case. Older saved sessions default to merge sort. Inconsistent human choices still produce a ranking but cannot guarantee a globally consistent order. The progress bar estimates progress against the worst-case comparison count and may reach completion early.
+The server replays the decision history through merge sort, stopping at the first comparison that needs a human decision. Only the current pair is accepted. This makes undo deterministic and keeps sorting authoritative on the backend. Merge sort takes O(n log n) comparisons with a consistent preference relation. Inconsistent human choices still produce a ranking but cannot guarantee a globally consistent order. The progress bar estimates progress against the worst-case comparison count and may reach completion early.
 
 ## Persistence and deployment
 
 Choose “Pause & view ranking” to stop comparing and see or download a provisional order. Recorded preferences determine the order where possible; unestablished relationships use the initial session order as a tie-breaker. Inconsistent preferences may not all fit one order. “Resume ranking” returns to the same unanswered comparison, with all choices and undo history preserved. This browser remembers the paused screen across reloads.
 
-Choose “Start over” during ranking or on the results screen to clear all choices and rank the same films again with the same algorithm. Confirming permanently resets the saved ranking, including undo history.
+Choose “Start over” during ranking or on the results screen to clear all choices and rank the same films again with merge sort. Confirming permanently resets the saved ranking, including undo history.
 
 Sessions are stored in `.data/sessions` (gitignored). Set `SESSION_DATA_DIR` to change the location. The browser remembers the opaque session ID in local storage so refreshes and restarts can resume the latest list. Sessions survive server restarts while the data directory persists. Starting a new list removes the browser pointer, not the old server file.
 
@@ -57,9 +57,9 @@ This storage adapter targets a **single Node.js server with persistent writable 
 
 ## API
 
-- `POST /api/sessions`: multipart `file`, `hasHeader`, and optional `algorithm` (`merge`, `quick`, or `heap`; defaults to `merge`); creates a session and returns its view.
+- `POST /api/sessions`: multipart `file` and `hasHeader`; creates a session and returns its view.
 - `GET /api/sessions/:id`: returns a saved session.
-- `POST /api/sessions/:id`: JSON `{ "revision": 0, "action": "choose", "winner": "0" }`, or `{ "revision": 1, "action": "undo" }`. Before any choices, `{ "revision": 0, "action": "algorithm", "algorithm": "quick" }` changes the algorithm.
+- `POST /api/sessions/:id`: JSON `{ "revision": 0, "action": "choose", "winner": "0" }`, `{ "revision": 1, "action": "undo" }`, or `{ "revision": 1, "action": "restart" }`.
 
 Stale revisions return HTTP 409. Invalid CSVs or choices return HTTP 400. Missing sessions return HTTP 404.
 

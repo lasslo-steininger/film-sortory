@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./theme.css";
 export const metadata: Metadata = {
-  title: "Sortory — Rank your favorite films",
+  title: "filmSortory",
   description:
-    "Upload a CSV of film names, compare films with IMDb covers, and discover your personal film ranking.",
+    "Upload a list of films, choose between pairs, and download your ranking.",
 };
 export default function RootLayout({
   children,
