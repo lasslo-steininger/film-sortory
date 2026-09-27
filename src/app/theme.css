@@ -385,6 +385,50 @@
   background: #34372f;
   border-color: var(--green);
 }
+.comparing .header { height: 64px; }
+.comparing .intro { padding: 16px 16px 14px; }
+.comparing .intro h1 { font-size: 36px; }
+.comparing .intro p { display: none; }
+.comparing .steps { height: 50px; }
+.comparing .compare-section { padding: 20px 28px; }
+.comparing .compare-heading h2 { margin-top: 0; font-size: 27px; }
+.comparing .compare-heading p { margin-top: 4px; }
+.comparing .progress-heading { margin-top: 12px; }
+.comparing .progress-track { margin: 6px 0 12px; }
+.comparing .comparison-cards { gap: 16px; }
+.comparing .choice-card {
+  display: grid;
+  grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr auto;
+  column-gap: 16px;
+  row-gap: 8px;
+  min-height: 0;
+  padding: 16px;
+}
+.comparing .choice-label { grid-column: 1 / -1; }
+.comparing .choice-card .film-poster {
+  grid-column: 1;
+  grid-row: 2 / span 3;
+  width: min(100%, 145px);
+  margin-top: 0;
+}
+.comparing .choice-name {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+  font-size: 21px;
+}
+.comparing .choice-details {
+  grid-column: 2;
+  grid-row: 3;
+  margin: 0;
+}
+.comparing .choice-cta { grid-column: 2; grid-row: 4; }
+.comparing .compare-footer { margin-top: 8px; }
+.comparing .compare-section > .secondary-button { padding: 10px 13px; }
+.comparing .restart-button { padding: 10px 13px; }
+.comparing .cover-note { margin-top: 8px; font-size: 10px; }
+.comparing .workspace-footer { height: 34px; }
 @media (max-width: 700px) {
   .header { height: 72px; }
   .intro { padding: 42px 20px 34px; }
@@ -395,4 +439,33 @@
   .section-heading h2 { font-size: 23px; }
   .choice-name { font-size: 19px; }
   .favorite-badge { font-size: 8px; padding: 6px; }
+  .comparing .intro h1 { font-size: 30px; }
+  .comparing .compare-section { padding: 14px 12px; }
+  .comparing .compare-heading h2 { font-size: 23px; }
+  .comparing .comparison-cards { gap: 8px; }
+  .comparing .choice-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 10px;
+  }
+  .comparing .choice-card .film-poster {
+    align-self: center;
+    width: min(100%, clamp(95px, 17vh, 125px));
+    margin-top: 5px;
+  }
+  .comparing .choice-name { margin-top: 7px; font-size: 16px; }
+  .comparing .choice-details { margin-top: 5px; margin-bottom: 8px; }
+  .comparing .choice-cta { font-size: 9px; }
+}
+@media (max-height: 740px) {
+  .comparing .header { height: 54px; }
+  .comparing .intro { padding: 8px 16px; }
+  .comparing .intro h1 { font-size: 26px; }
+  .comparing .steps { height: 42px; }
+  .comparing .compare-section { padding-top: 12px; padding-bottom: 12px; }
+  .comparing .compare-heading p,
+  .comparing .cover-note,
+  .comparing .workspace-footer { display: none; }
+  .comparing .choice-card .film-poster { width: min(100%, 105px); }
 }

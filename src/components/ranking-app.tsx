@@ -252,7 +252,7 @@ export function RankingApp() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${stage === 2 ? "comparing" : ""}`}>
       <header className="header">
         <a className="brand" href="/" aria-label="filmSortory home">
           <span className="brand-film">film</span>Sortory
