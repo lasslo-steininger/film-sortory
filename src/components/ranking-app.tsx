@@ -21,6 +21,12 @@ import { ThemeToggle } from "./theme-toggle";
 
 const sample =
   "Title,Year,Director\nSpirited Away,2001,Hayao Miyazaki\nThe Grand Budapest Hotel,2014,Wes Anderson\nArrival,2016,Denis Villeneuve\nInterstellar,2014,Christopher Nolan\nFantastic Mr. Fox,2009,Wes Anderson\nAmélie,2001,Jean-Pierre Jeunet\n";
+const suggestedImdbLists = [
+  { name: "Marvel Cinematic Universe", url: "https://www.imdb.com/list/ls031310794/" },
+  { name: "Star Wars Skywalker Saga", url: "https://www.imdb.com/list/ls042798535/" },
+  { name: "Mission Impossible Films", url: "https://www.imdb.com/list/ls550657440/" },
+  { name: "Christopher Nolan Films", url: "https://www.imdb.com/list/ls061603559/" },
+] as const;
 const storageKey = "sortory-session";
 const pausedKey = "sortory-paused-session";
 function remember(id: string | null) {
@@ -350,6 +356,7 @@ export function RankingApp() {
                       </button>
                     </div>
                     {importMode === "imdb" ? (
+                      <>
                       <form
                         className="imdb-import"
                         onSubmit={(event) => { event.preventDefault(); void importList(); }}
@@ -371,6 +378,22 @@ export function RankingApp() {
                         </button>
                         <p>Public lists only · Up to 1,000 entries · Films and short films</p>
                       </form>
+                      <div className="imdb-suggestions">
+                        <p>Need a list? Try one of these:</p>
+                        <div className="imdb-suggestion-list">
+                          {suggestedImdbLists.map(({ name, url }) => (
+                            <button
+                              key={url}
+                              type="button"
+                              disabled={busy}
+                              onClick={() => setImdbUrl(url)}
+                            >
+                              {name} <ArrowRight size={14} aria-hidden="true" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      </>
                     ) : (
                     <>
                     <input
