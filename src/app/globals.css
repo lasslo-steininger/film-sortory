@@ -187,6 +187,9 @@ h1 > span {
   box-shadow: 0 7px 28px #283c2c05;
   overflow: hidden;
 }
+.results-workspace {
+  overflow: visible;
+}
 .steps {
   display: flex;
   align-items: center;
@@ -960,9 +963,7 @@ h1 > span {
 .results-list {
   list-style: none;
   padding: 0;
-  margin: 27px 0;
-  max-height: 500px;
-  overflow: auto;
+  margin: 12px 0 27px;
   text-align: left;
 }
 .results-list li {
@@ -1012,6 +1013,15 @@ h1 > span {
   display: flex;
   justify-content: center;
   gap: 12px;
+  position: sticky;
+  top: 12px;
+  z-index: 2;
+  margin-top: 24px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 8px 24px #283c2c1a;
 }
 .undo-result {
   margin: 17px auto 0;
@@ -1253,6 +1263,17 @@ h1 > span {
   }
   .result-actions {
     flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+  }
+  .result-actions .primary-button {
+    width: 100%;
+  }
+  .result-actions .secondary-button {
+    flex: 1;
+    gap: 4px;
+    padding: 9px 6px;
+    font-size: 10px;
   }
   .results-list li {
     gap: 11px;

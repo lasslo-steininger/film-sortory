@@ -355,8 +355,13 @@
   letter-spacing: .8px;
 }
 .results-list li { border-color: var(--border); }
+.result-actions { border-radius: 2px; }
 .poster-placeholder { background: #e9e6dd; color: var(--muted); }
 .modal { border-radius: 3px; }
+[data-theme="dark"] .result-actions {
+  background: var(--surface);
+  box-shadow: 0 8px 24px #0005;
+}
 [data-theme="dark"] .csv-guide { background: #292b26; }
 [data-theme="dark"] .dropzone:hover,
 [data-theme="dark"] .dropzone.dragging { background: #30332d; }

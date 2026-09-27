@@ -281,7 +281,7 @@ export function RankingApp() {
             films at a time to build your ranking.
           </p>
         </div>
-        <div className="workspace">
+        <div className={`workspace ${stage === 3 ? "results-workspace" : ""}`}>
           <nav className="steps" aria-label="Ranking progress">
             {[
               "Add films",
@@ -707,6 +707,25 @@ export function RankingApp() {
                   </button>
                 </>
               )}
+              <div className="result-actions">
+                <button className="primary-button" onClick={exportResults}>
+                  <Download size={17} /> {provisional ? "Download provisional ranking" : "Download ranking"}
+                </button>
+                <button
+                  className="secondary-button"
+                  disabled={busy}
+                  onClick={() => setShowReset("replace")}
+                >
+                  Rank another list <Plus size={16} />
+                </button>
+                <button
+                  className="secondary-button"
+                  disabled={busy}
+                  onClick={() => setShowReset("restart")}
+                >
+                  <RotateCcw size={16} /> Start over
+                </button>
+              </div>
               <ol className="results-list">
                 {displayedRanking.map((item, index) => (
                   <li key={item.id}>
@@ -732,25 +751,6 @@ export function RankingApp() {
                   </li>
                 ))}
               </ol>
-              <div className="result-actions">
-                <button className="primary-button" onClick={exportResults}>
-                  <Download size={17} /> {provisional ? "Download provisional ranking" : "Download ranking"}
-                </button>
-                <button
-                  className="secondary-button"
-                  disabled={busy}
-                  onClick={() => setShowReset("replace")}
-                >
-                  Rank another list <Plus size={16} />
-                </button>
-                <button
-                  className="secondary-button"
-                  disabled={busy}
-                  onClick={() => setShowReset("restart")}
-                >
-                  <RotateCcw size={16} /> Start over
-                </button>
-              </div>
               {!provisional && <button
                 className="text-button undo-result"
                 disabled={busy}
